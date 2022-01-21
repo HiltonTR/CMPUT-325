@@ -39,13 +39,13 @@
 (defun remove-duplicate (x)
   (cond
     ((null x) nil)
-    ((exists (car x) (cdr x)) (cons (car x) (remove-duplicate (cdr x))))
-    (t (cons (car x) (cdr x)))
+    ((exists (car x) (cdr x)) (remove-duplicate (cdr x)))
+    (t (cons (car x) (remove-duplicate (cdr x))))
     )
   )
 
-(trace exists)
-(print (remove-duplicate '(a b c e d e a e)))
+;(trace exists)
+;(print (remove-duplicate '(a b c a d b)))
 ;(print (remove-duplicate '(1 1 2 2 3 3 3 4 5 1)))
 
 
@@ -63,14 +63,12 @@
 
 (defun split (L)
   (cond
-    ((null L) nil)
-    ((eq 1 (length L)) (list (car L)))
-    (t (cons (cons (car L)
-                   (split (cdr (cdr L))))
-              (car (cdr L))))
-    )
-  )
+      ((null L) (list NIL  NIL))
+      (t (let ((X (split (cdr L))))
+         (cond
+             ((oddp (length L)) (list (cons (first L) (first X)) (cadr X)))
+             (t (list (first X) (cons (first L) (cadr X)))))))))
 
 ;(trace split)
-;(print (split '(1 2)))
+(print (split '(1 2 3 4 5 6)))
 
