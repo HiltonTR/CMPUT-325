@@ -62,13 +62,64 @@
 
 
 (defun split (L)
-  (cond
-      ((null L) (list NIL  NIL))
-      (t (let ((X (split (cdr L))))
-         (cond
-             ((oddp (length L)) (list (cons (first L) (first X)) (cadr X)))
-             (t (list (first X) (cons (first L) (cadr X)))))))))
+   (cond
+       ((null (car L)) (list nil nil))
+       (t (cons (branch L) (list (branch (cdr L))))))
+)
+
+(defun branch (L)
+   (cond
+       ((null (car L)) nil)
+       (t (cons (car L) (branch (cdr (cdr L))))))
+)
 
 ;(trace split)
-(print (split '(1 2 3 4 5 6)))
+;(print (split '(1 2 3 4 5 6 7 8)))
 
+(defun allsubsets (L)
+  (if (null L) L
+    (if (null (cdr L)) (list nil L)
+      (remove-duplicate (cons L (combinations (createSubsets L L))))))
+  )
+
+
+(defun createSubsets (L1 L2)
+  (if (null (cdr L1))
+  (list (deleteElement (car L1) L2))
+  (cons (deleteElement (car L1) L2) (createSubsets (cdr L1) L2)))
+  )
+
+(defun deleteElement (a L)
+  (cond 
+    ((null L) nil)
+    ((equal a (car L)) (deleteElement a (cdr L)))
+    (t (cons (car L) (deleteElement a (cdr L)))))
+  )
+
+(defun combinations (L)
+  (if (null (cdr L))
+    (allsubsets (car L))
+    (zip (allsubsets (car L)) (combinations (cdr L))))
+  )
+
+;(trace allsubsets)
+;(allsubsets '(a b c))
+
+
+(defun reached (x L)
+  (cond
+    ((null (nested x L)) nil)
+    ((equal (car (nested x L)) (cdar L)) (cons (cdar L) (nested x (cdr L))))
+    )
+  )
+
+(defun nested (x L)
+  (cond 
+    ((equal x (cdar L)) nil)    
+    ((null L) nil)
+    ((equal x (caar L)) (cons (cdar L) (nested x (cdr L)))))
+  )
+
+(trace reached)
+;(reached 'google '( (google shopify) (google aircanada) (amazon aircanada)))
+(print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google) )) )
