@@ -114,6 +114,7 @@
     ((null L) nil)
     ((equal x (caar L)) 
       (cond 
+        ((equal x (cadar L)) (reached x (cdr L)))
         ((null (reached (cadar L) L)) (cons (cadar L) (reached x (cdr L))))
         (t (cons (cadar L) (reached (cadar L) L)))
         ))
@@ -123,5 +124,5 @@
 ;(trace reached)
 (print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada))))
 (print(reached 'google '( (google shopify) (shopify amazon) (amazon google) ) ))
-(print(reached 'google '( (google shopify) (shopify amazon) (amazon indigo)  )))
+(print(reached 'google '( (google shopify) (shopify amazon) (amazon indigo) (amazon amazon) )))
 (print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
