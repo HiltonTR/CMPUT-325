@@ -105,21 +105,18 @@
 ;(trace allsubsets)
 ;(allsubsets '(a b c))
 
-
 (defun reached (x L)
   (cond
-    ((null (nested x L)) nil)
-    ((equal (car (nested x L)) (cdar L)) (cons (cdar L) (nested x (cdr L))))
-    )
-  )
-
-(defun nested (x L)
-  (cond 
-    ((equal x (cdar L)) nil)    
     ((null L) nil)
-    ((equal x (caar L)) (cons (cdar L) (nested x (cdr L)))))
+    ((equal x (caar L)) 
+      (cond 
+        ((null (reached (cadar L) L)) (cons (cadar L) (reached x (cdr L))))
+        (t (cons (cadar L) (reached (cadar L) L)))
+        ))
+    (t (reached x (cdr L))))
   )
 
 (trace reached)
-;(reached 'google '( (google shopify) (google aircanada) (amazon aircanada)))
-(print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google) )) )
+(print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada))))
+(print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
+
