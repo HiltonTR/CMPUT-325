@@ -147,10 +147,10 @@
     ((equal a (car L)) (+ 1 (counter a (cdr L))))
     (t (counter a (cdr L)))))
 
-(defun rank (S L)
+(defun lister (S L)
   (cond
     ((null S) nil)
-    (t (cons (cons (car S) (counter (car S) (strip L))) (rank (cdr S) L)))
+    (t (cons (cons (car S) (counter (car S) (strip L))) (lister (cdr S) L)))
     )
   )
 
@@ -162,12 +162,12 @@
   (>(cdr L1)(cdr L2))
   )
 
-(defun test (S L)
-  (strip-results(mySort(rank S L)))
+(defun rank (S L)
+  (strip-results(mySort(lister S L)))
   )
 
 ;(trace test)
-(print(test '(google shopify aircanada amazon) '((google shopify) (google aircanada) (amazon aircanada))))
-(print(test '(google shopify amazon) '((google shopify) (shopify amazon) (amazon google))))
-(print(test '(google shopify amazon indigo) '((google shopify) (shopify amazon) (amazon indigo))))
-(print(test '(google shopify aircanada amazon delta) '((google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
+;(print(rank '(google shopify aircanada amazon) '((google shopify) (google aircanada) (amazon aircanada))))
+;(print(rank '(google shopify amazon) '((google shopify) (shopify amazon) (amazon google))))
+;(print(rank '(google shopify amazon indigo) '((google shopify) (shopify amazon) (amazon indigo))))
+;(print(rank '(google shopify aircanada amazon delta) '((google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
