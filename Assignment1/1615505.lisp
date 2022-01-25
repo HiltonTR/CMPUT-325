@@ -1,4 +1,4 @@
-;QUESTION
+;QUESTION 1
 ;DOCUMENTATION
 (defun xcount (L)
     (cond
@@ -10,10 +10,10 @@
               )
             (xcount (cdr L))))))
 
-;(trace xcount)
-;(print (xcount '(a (b c d (a (a () () (a)) d)) c)))
 
 
+;QUESTION 2
+;DOCUMENTATION
 (defun flatten (x)
     (if (null x)
         nil
@@ -21,34 +21,27 @@
             (cons (car x) (flatten (cdr x)))
             (append (flatten (car x)) (flatten (cdr x))))))
 
-;(trace flatten)
-;(print (flatten '(a (b (c (d) (e (1 (2 3 4 (5) 6))))))))
 
+;QUESTION 3
+;DOCUMENTATION
 (defun exists (a L)
   (cond 
     ((null L) nil)
     ((equal a (car L)) L)
-    (t (exists a (cdr L)))
-    )
-  )
-
-;(trace exists)
-;(print (exists 'a '(a b c e a e f e)))
+    (t (exists a (cdr L)))))
 
 
+;QUESTION 4a
+;DOCUMENTATION
 (defun remove-duplicate (x)
   (cond
     ((null x) nil)
     ((exists (car x) (cdr x)) (remove-duplicate (cdr x)))
-    (t (cons (car x) (remove-duplicate (cdr x))))
-    )
-  )
-
-;(trace exists)
-;(print (remove-duplicate '(a b c a d b)))
-;(print (remove-duplicate '(1 1 2 2 3 3 3 4 5 1)))
+    (t (cons (car x) (remove-duplicate (cdr x))))))
 
 
+;QUESTION 4b
+;DOCUMENTATION
 (defun zip (L1 L2)
    (cond
          ((null L1) L2)
@@ -56,11 +49,9 @@
     )
   )
 
-;(trace zip)
-;(print (zip '(1 2 3) '(a b c d e f g)))
 
-
-
+;QUESTION 5
+;DOCUMENTATION
 (defun split (L)
    (cond
        ((null (car L)) (list nil nil))
@@ -73,9 +64,10 @@
        (t (cons (car L) (branch (cdr (cdr L))))))
 )
 
-;(trace split)
-;(print (split '(1 2 3 4 5 6 7 8)))
 
+
+;QUESTION 6
+;DOCUMENTATION
 (defun allsubsets (L)
   (if (null L) L
     (if (null (cdr L)) (list nil L)
@@ -102,9 +94,10 @@
     (zip (allsubsets (car L)) (combinations (cdr L))))
   )
 
-;(trace allsubsets)
-;(allsubsets '(a b c))
 
+
+;QUESTION 7a
+;DOCUMENTATION
 (defun reached (x L)
   (deleteElement x (branch x L))
   )
@@ -121,11 +114,13 @@
     (t (reached x (cdr L))))
   )
 
-;(trace reached)
-;(print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada))))
-;(print(reached 'google '( (google shopify) (shopify amazon) (amazon google) ) ))
-;(print(reached 'google '( (google shopify) (shopify amazon) (amazon indigo) (amazon amazon) )))
-;(print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
+
+
+;QUESTION 7b
+;DOCUMENTATION
+(defun rank (S L)
+  (strip-results(mySort(lister S L)))
+  )
 
 (defun strip (L)
   (cond
@@ -162,12 +157,4 @@
   (>(cdr L1)(cdr L2))
   )
 
-(defun rank (S L)
-  (strip-results(mySort(lister S L)))
-  )
 
-;(trace test)
-;(print(rank '(google shopify aircanada amazon) '((google shopify) (google aircanada) (amazon aircanada))))
-;(print(rank '(google shopify amazon) '((google shopify) (shopify amazon) (amazon google))))
-;(print(rank '(google shopify amazon indigo) '((google shopify) (shopify amazon) (amazon indigo))))
-;(print(rank '(google shopify aircanada amazon delta) '((google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
