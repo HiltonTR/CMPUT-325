@@ -106,6 +106,10 @@
 ;(allsubsets '(a b c))
 
 (defun reached (x L)
+  (deleteElement x (branch x L))
+  )
+
+(defun branch (x L)
   (cond
     ((null L) nil)
     ((equal x (caar L)) 
@@ -116,7 +120,8 @@
     (t (reached x (cdr L))))
   )
 
-(trace reached)
+;(trace reached)
 (print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada))))
+(print(reached 'google '( (google shopify) (shopify amazon) (amazon google) ) ))
+(print(reached 'google '( (google shopify) (shopify amazon) (amazon indigo)  )))
 (print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
-
