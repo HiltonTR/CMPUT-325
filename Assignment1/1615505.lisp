@@ -127,4 +127,47 @@
 ;(print(reached 'google '( (google shopify) (shopify amazon) (amazon indigo) (amazon amazon) )))
 ;(print(reached 'google '( (google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
 
+(defun strip (L)
+  (cond
+    ((null L) nil)
+    (t (cons (cadar L) (strip (cdr L))))
+    )
+  )
 
+(defun strip-results (L)
+  (cond
+    ((null L) nil)
+    (t (cons (caar L) (strip-results (cdr L))))
+    )
+  )
+
+(defun counter (a L)
+  (cond
+    ((null L) 0)
+    ((equal a (car L)) (+ 1 (counter a (cdr L))))
+    (t (counter a (cdr L)))))
+
+(defun rank (S L)
+  (cond
+    ((null S) nil)
+    (t (cons (cons (car S) (counter (car S) (strip L))) (rank (cdr S) L)))
+    )
+  )
+
+(defun mySort (L)
+  (sort L 'greaterThan)
+  )
+
+(defun greaterThan (L1 L2)
+  (>(cdr L1)(cdr L2))
+  )
+
+(defun test (S L)
+  (strip-results(mySort(rank S L)))
+  )
+
+;(trace test)
+(print(test '(google shopify aircanada amazon) '((google shopify) (google aircanada) (amazon aircanada))))
+(print(test '(google shopify amazon) '((google shopify) (shopify amazon) (amazon google))))
+(print(test '(google shopify amazon indigo) '((google shopify) (shopify amazon) (amazon indigo))))
+(print(test '(google shopify aircanada amazon delta) '((google shopify) (google aircanada) (amazon aircanada) (aircanada delta) (google google))))
