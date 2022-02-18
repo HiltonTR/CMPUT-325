@@ -4,15 +4,15 @@
 ;; Assignment 2
 
 (defun fl-interp (E P)
-  (print E)
-  (print P)
-  (print (clean P))
+  ;(print E)
+  ;(print P)
+  ;(print (clean P))
   (print (interp E (clean P))))
 (defun interp (E P)
     (cond
         ((atom E) 
         (cond 
-        ((userDefined E P) (interp (getVariable E P) P))
+        ((userDefined E P) (interp (getVariable E P) P)) ; this clause right here is needed 
         (t E)))
         (t
         (let ((func (car E)) (argument (cdr E)))
@@ -44,7 +44,7 @@
 
 
             ((eq P nil) E)
-            ((userDefined func P) (interp (getBody func P) (append (createList P (getVariable func P) argument) P)))
+            ((userDefined func P) (interp (getBody func P) (append (createList P (getVariable func P) argument) P))) ; 
 
             ;(t (cons (interp (car E) P) (interp (cdr E) P)))
             )
@@ -54,9 +54,20 @@
 )
 
 (defun bool (num)
+"
+This is a helper function for interp. It just returns a boolean
+for the logical operations instead of a number.
+"
    (if num t nil))
 
 (defun userDefined (E P)
+"
+This is a helper function for interp. This function
+searches through P to see if there if it is a user defined 
+function or not by seeing if E exists in P. If E exists, it
+is a user defined function. If it does not exist, it is not 
+a user defined function.
+"
   (cond
   ((null P) nil)
   ((eq E (car (car P))) t)
@@ -83,7 +94,7 @@ P = ((add x y = (+ x y)))
 (defun beforeEqual (function)
 " 
 This is a helper function for clean. It takes all elements before the = sign
-and makes them all into a list.
+so clean can make it into a list.
 "
   (cond
   ((eq '= (car function)) nil)
@@ -93,13 +104,12 @@ and makes them all into a list.
 (defun afterEqual (function)
 " 
 This is a helper function for clean. It takes all elements after the = sign
-and makes them all into a list.
+so clean can make it into a list.
 "
   (cond
   ((null function) nil)
   ((eq '= (car function)) (car (cdr function)))
   (t (afterEqual (cdr function)))))
-
 
 
 ; Extracts the args for a given function from the closure
