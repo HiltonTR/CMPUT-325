@@ -12,7 +12,7 @@ Example:
   (fl-interp '(+ 1 2) nil)
   => 3
 "
-(interp Exp P))
+(interp Exp (clean P)))
 
 (defun interp (Exp P)
 "
@@ -112,11 +112,11 @@ so clean can make it into a list.
 
 Example:
   (add (x y) = (+ x y))
-  => (add (x y))
+  => (add x y)
 "
   (cond
   ((eq '= (car function)) nil)
-  (t (cons (car function) (beforeEqual (cdr function))))))
+  (t (flatten (cons (car function) (beforeEqual (cdr function)))))))
 
 
 (defun afterEqual (function)
@@ -132,6 +132,23 @@ Example:
   ((null function) nil)
   ((eq '= (car function)) (car (cdr function)))
   (t (afterEqual (cdr function)))))
+
+(defun flatten (x)
+  "This function takes a list x where there may be many nested lists
+   and flattens the list to one level in the same order. Taken from assignment 1
+
+  Example:
+    (flatten '(a (b c) d)) => (a b c d)
+
+    (flatten '((((a))))) => (a)
+
+    (flatten '(a (b c) (d ((e)) f))) => (a b c d e f)
+   "
+    (if (null x)
+        nil ; if the list is empty then return nil
+        (if (atom (car x)) ; otherwise if there is an atom, create a list and recursively call it
+            (cons (car x) (flatten (cdr x)))
+            (append (flatten (car x)) (flatten (cdr x))))))
 
 (defun getVariable (func L)
 "
@@ -161,7 +178,6 @@ is already in the format of a list and we won't need to process it further.
 (defun createList (P argument input)
 "
 This function is a helper function that creates a list from the variables and bodies.
-
 "
   (cond
   ((null P) nil)
@@ -171,7 +187,16 @@ This function is a helper function that creates a list from the variables and bo
        (createList P (cdr argument) (cdr input))))))
 
 
+(defun deleteElement (a L)
+"
+This function is a helper function for allsubsets. It deletes a given atom from a given list
+allowing create createSubsets to create a unique list. Taken from assignment 1
+" 
+  (cond 
+    ((null L) nil)
+    ((equal a (car L)) (deleteElement a (cdr L))) ; if the atom is the same remove and iterate
+    (t (cons (car L) (deleteElement a (cdr L)))))) ; if atom is not the same iterate 
+
+
 ;Useful trace for debugging.
 ;(trace interp)
-
-
