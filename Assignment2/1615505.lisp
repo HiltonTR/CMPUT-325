@@ -158,6 +158,10 @@ Example:
 This is a helper function for interp as it finds the given variables for the function.
 As we have previously cleaned up the function, it becomes a lot easier to find as it
 is already in the format of a list, eliminating the need to process it further.
+
+Example:
+  (getVariable 'greater (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil))))))
+  => (X Y)
 "
   (cond
   ((null func) nil)
@@ -170,6 +174,10 @@ is already in the format of a list, eliminating the need to process it further.
 This is a helper function for interp as it finds the function definition.
 As we have previously cleaned up the function, it becomes a lot easier to find as it
 is already in the format of a list and we won't need to process it further.
+
+  Example:
+  (getBody 'greater (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil))))))
+  => (IF (> X Y) X (IF (< X Y) Y NIL)) 
 "
   (cond
   ((null func) nil)
@@ -179,7 +187,12 @@ is already in the format of a list and we won't need to process it further.
 
 (defun createList (P argument input)
 "
-This function is a helper function that creates a list from the variables and bodies. 
+This function is a helper function that creates a list from the variables and bodies.
+
+  Example:
+  (createList (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil))))) 
+  (getVariable 'greater (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil)))))) '(20 40))  
+  => ((X 20) (Y 40)) 
 "
   (cond
   ((null P) nil)
