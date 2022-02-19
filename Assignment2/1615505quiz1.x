@@ -1,3 +1,8 @@
+;; Hilton Truong
+;; 1615505
+;; CMPUT 325
+;; Assignment 2 quiz
+
 1. [1 mark] Reduce the following λ-expression to its normal form. Show two sequences
 of reductions, one of which is based on normal order reduction and the other based on
 applicative order reduction. Show all the reduction steps.
