@@ -187,7 +187,3 @@ This function is a helper function that creates a list from the variables and bo
   ((null input) nil)
   (T (cons (list (car argument) (interp (car input) P))
        (createList P (cdr argument) (cdr input))))))
-
-
-;Useful trace for debugging.
-;(trace interp)
