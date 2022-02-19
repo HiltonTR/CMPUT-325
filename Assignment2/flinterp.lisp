@@ -6,13 +6,14 @@
 (defun fl-interp (Exp P)
 "
 This is the main function that is called. Clean is called on P as if it is a user defined program,
-it will clean up the formatting so that it is easier to process below.
+it will clean up the formatting so that it is easier to process below. The parameters it takes are
+the expression and the program. The program will be nil if not using a user defined one.
 
 Example:
   (fl-interp '(+ 1 2) nil)
   => 3
 "
-(interp Exp (clean P)))
+  (interp Exp (clean P)))
 
 (defun interp (Exp P)
 "
@@ -22,7 +23,8 @@ executes them.
     (cond
       ((atom Exp) 
         (cond 
-          ((userDefined Exp P) (interp (getVariable Exp P) P)) ; this clause right here is needed 
+          ((userDefined Exp P) (interp (getVariable Exp P) P)) ; this clause right here is needed as the way 
+          ; it was formatted above will give an error otherwise
           (t Exp)))
       (t (let ((func (car Exp)) (argument (cdr Exp)))
         (cond
@@ -75,7 +77,8 @@ is a user defined function. If it does not exist, it is not
 a user defined function.
 
 Example: 
-  (userDefined ())
+  (userDefined '(greater 20 40) '((GREATER (X Y) (IF (> X Y) X (IF (< X Y) Y NIL)))))
+  => nil
 "
   (cond
   ((null Exp) nil)
@@ -155,7 +158,6 @@ Example:
 This is a helper function for interp as it finds the given variables for the function.
 As we have previously cleaned up the function, it becomes a lot easier to find as it
 is already in the format of a list, eliminating the need to process it further.
-
 "
   (cond
   ((null func) nil)
@@ -185,17 +187,6 @@ This function is a helper function that creates a list from the variables and bo
   ((null input) nil)
   (T (cons (list (car argument) (interp (car input) P))
        (createList P (cdr argument) (cdr input))))))
-
-
-(defun deleteElement (a L)
-"
-This function is a helper function for allsubsets. It deletes a given atom from a given list
-allowing create createSubsets to create a unique list. Taken from assignment 1
-" 
-  (cond 
-    ((null L) nil)
-    ((equal a (car L)) (deleteElement a (cdr L))) ; if the atom is the same remove and iterate
-    (t (cons (car L) (deleteElement a (cdr L)))))) ; if atom is not the same iterate 
 
 
 ;Useful trace for debugging.
