@@ -179,7 +179,7 @@ is already in the format of a list and we won't need to process it further.
 
 (defun createList (P argument input)
 "
-This function is a helper function that creates a list from the variables and bodies.
+This function is a helper function that creates a list from the variables and bodies. 
 "
   (cond
   ((null P) nil)
@@ -187,3 +187,7 @@ This function is a helper function that creates a list from the variables and bo
   ((null input) nil)
   (T (cons (list (car argument) (interp (car input) P))
        (createList P (cdr argument) (cdr input))))))
+
+
+;Useful trace for debugging.
+;(trace interp)
