@@ -66,3 +66,46 @@ swap([A, B |L1], [B, A |L2]) :- swap(L1, L2).
 % Hint: First, get the occurrences counted, and then define a predicate that does the sorting.
 %        You can adopt any shorting algorithm you can find and you will not be penalized for it (just cite the source). 
 
+
+
+% 5 (1 mark)
+% Define a predicate
+% 
+% sub(+L,+S,-L1)
+% 
+% where L is a possibly nested list of atoms, S is a list of pairs in the form [[x1,e1],...,[xn,en]], and L1 is the same as L except that any occurrence of xi is replaced by ei. Assume xi's are atoms and ei's are arbitrary expressions. E.g. the goal sub([a,[a,d],[e,a]],[[a,2]],L) should return L= [2,[2,d],[e,2]].
+% 
+% Note: S is intended as a substitution. In this case, Xi's are distinct, and they do not occur in ei's.
+
+
+
+% 6 (2 marks)
+% The clique problem is a graph-theoretic problem of finding a subset of
+% nodes where each is connected to every other node in the subset. In
+% this problem, we assume that each node in a graph is connected to at
+% least one another node, so a graph can just be represented by a
+% collection of edges, edge(A,B). Assume edges are undirected, so that
+% edge(A,B) implies edge(B,A). For example, the following Prolog facts
+% represent a graph
+% 
+% edge(a,b).
+% edge(b,c).
+% edge(c,a).
+% node(a).
+% node(b).
+% node(c).
+
+% The set of nodes [a,b,c] is a clique, so is every subset of it. Note
+% that the empty subset is a clique, by definition.
+% 
+% To solve this problem, first, by using the built-in predicate
+% findall/3, one can find all nodes of a graph. Thus, the clique problem
+% can be solved by generating all subsets and for each testing their
+% connectivity.
+% 
+% Requirement:
+% Define a predicate named clique(L) such that  findall(L, clique(L),
+% Cliques) will unify Cliques with a list containing all cliques. L should contain a single clique. The order that your predicate generates cliques does not matter.
+% Your program must not contain definitions for edge/2 or node/1
+% You can expect that facts for nodes edges will be appended to your
+% program before it is run.
