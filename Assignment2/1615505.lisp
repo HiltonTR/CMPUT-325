@@ -6,13 +6,14 @@
 (defun fl-interp (Exp P)
 "
 This is the main function that is called. Clean is called on P as if it is a user defined program,
-it will clean up the formatting so that it is easier to process below.
+it will clean up the formatting so that it is easier to process below. The parameters it takes are
+the expression and the program. The program will be nil if not using a user defined one.
 
 Example:
   (fl-interp '(+ 1 2) nil)
   => 3
 "
-(interp Exp P))
+  (interp Exp (clean P)))
 
 (defun interp (Exp P)
 "
@@ -22,7 +23,8 @@ executes them.
     (cond
       ((atom Exp) 
         (cond 
-          ((userDefined Exp P) (interp (getVariable Exp P) P)) ; this clause right here is needed 
+          ((userDefined Exp P) (interp (getVariable Exp P) P)) ; this clause right here is needed as the way 
+          ; it was formatted above will give an error otherwise
           (t Exp)))
       (t (let ((func (car Exp)) (argument (cdr Exp)))
         (cond
@@ -75,7 +77,8 @@ is a user defined function. If it does not exist, it is not
 a user defined function.
 
 Example: 
-  (userDefined ())
+  (userDefined '(greater 20 40) '((GREATER (X Y) (IF (> X Y) X (IF (< X Y) Y NIL)))))
+  => nil
 "
   (cond
   ((null Exp) nil)
@@ -112,11 +115,11 @@ so clean can make it into a list.
 
 Example:
   (add (x y) = (+ x y))
-  => (add (x y))
+  => (add x y)
 "
   (cond
   ((eq '= (car function)) nil)
-  (t (cons (car function) (beforeEqual (cdr function))))))
+  (t (flatten (cons (car function) (beforeEqual (cdr function)))))))
 
 
 (defun afterEqual (function)
@@ -133,12 +136,32 @@ Example:
   ((eq '= (car function)) (car (cdr function)))
   (t (afterEqual (cdr function)))))
 
+(defun flatten (x)
+  "This function takes a list x where there may be many nested lists
+   and flattens the list to one level in the same order. Taken from assignment 1
+
+  Example:
+    (flatten '(a (b c) d)) => (a b c d)
+
+    (flatten '((((a))))) => (a)
+
+    (flatten '(a (b c) (d ((e)) f))) => (a b c d e f)
+   "
+    (if (null x)
+        nil ; if the list is empty then return nil
+        (if (atom (car x)) ; otherwise if there is an atom, create a list and recursively call it
+            (cons (car x) (flatten (cdr x)))
+            (append (flatten (car x)) (flatten (cdr x))))))
+
 (defun getVariable (func L)
 "
 This is a helper function for interp as it finds the given variables for the function.
 As we have previously cleaned up the function, it becomes a lot easier to find as it
 is already in the format of a list, eliminating the need to process it further.
 
+Example:
+  (getVariable 'greater (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil))))))
+  => (X Y)
 "
   (cond
   ((null func) nil)
@@ -151,6 +174,10 @@ is already in the format of a list, eliminating the need to process it further.
 This is a helper function for interp as it finds the function definition.
 As we have previously cleaned up the function, it becomes a lot easier to find as it
 is already in the format of a list and we won't need to process it further.
+
+  Example:
+  (getBody 'greater (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil))))))
+  => (IF (> X Y) X (IF (< X Y) Y NIL)) 
 "
   (cond
   ((null func) nil)
@@ -162,6 +189,10 @@ is already in the format of a list and we won't need to process it further.
 "
 This function is a helper function that creates a list from the variables and bodies.
 
+  Example:
+  (createList (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil))))) 
+  (getVariable 'greater (clean '((greater (x y) = (if (> x y) x (if (< x y) y nil)))))) '(20 40))  
+  => ((X 20) (Y 40)) 
 "
   (cond
   ((null P) nil)
@@ -173,5 +204,3 @@ This function is a helper function that creates a list from the variables and bo
 
 ;Useful trace for debugging.
 ;(trace interp)
-
-
