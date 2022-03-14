@@ -66,8 +66,72 @@ swap([A, B |L1], [B, A |L2]) :- swap(L1, L2).
 % Hint: First, get the occurrences counted, and then define a predicate that does the sorting.
 %        You can adopt any shorting algorithm you can find and you will not be penalized for it (just cite the source). 
 
+occurance(A, [], N, F) :-
+	N = [A, F].
+% If we've found an occurance of atom A, increase the frequency count and
+% continue
+occurance(A, [B|L], N, F) :-
+	A == B,
+	!,
+	F1 is F + 1,
+	occurance(A, L, N, F1).
+% If we've found an atom that isn't A, continue
+occurance(A, [_|L], N, F) :-
+	!,
+	occurance(A, L, N, F).
 
+% Count iterates over the list, creating a list of the format
+% [[Atom, Frequency], ...]
+% Base case: return an empty list if the list is empty. Also return a list
+% of all seen atoms so far.
+count([], [], S, S).
+% We've found an atom that we have already counted. Continue.
+count([A|L], N, S, V) :-
+	member(A, S),
+	!,
+	count(L, N, S, V).
+% We've found a new atom. Count occurances of it, and append it to our list.
+% Also append it to the list of seen atoms.
+count([A|L], [X|N], S, V) :-
+	!,
+	occurance(A, L, X, 1),
+	count(L, N, [A|S], V).
+% countAll takes a list of atoms and returns a list of tuples with atom and
+% frequency, sorted in descending order by frequency. As preserving the original
+% structure of the list is unneccessary, we flatten the list first to ease
+% the iterating. We also use a merge sort algorithm to sort the list.
+countAll(L, R) :-
+	count(L, N, [], _),
+	merge_sort(N, R).
 
+% Merge sort and halve were found here:
+% http://kti.mff.cuni.cz/~bartak/prolog/sorting.html#merge
+% Modified to sort tuples in the form of [Atom, Frequency]
+% in descending order by frequency.
+halve(L, A, B) :- hv(L, [], A, B).
+hv(L, L, [], L). % for lists of even length
+hv(L, [_|L], [], L).
+hv([H|T], Acc, [H|L], B) :- !, hv(T, [_|Acc], L, B).
+
+merge_sort([], []).
+merge_sort([X], [X]).
+merge_sort(L, S) :-
+	L = [_, _ | _],
+	halve(L, L1, L2),
+	!,
+	merge_sort(L1, S1),
+	merge_sort(L2, S2),
+	merge(S1, S2, S).
+merge([], L, L).
+merge(L, [], L) :- !, L \= [].
+merge([[A1, F1]|T1], [[A2, F2]|T2], [[A1, F1]|T]) :-
+	F1 =< F2,
+	!,
+	merge(T1, [[A2, F2]|T2], T).
+merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
+	F1 >= F2,
+	!,
+	merge([[A1, F1]|T1], T2, T).
 % 5 (1 mark)
 % Define a predicate
 % 
@@ -76,6 +140,7 @@ swap([A, B |L1], [B, A |L2]) :- swap(L1, L2).
 % where L is a possibly nested list of atoms, S is a list of pairs in the form [[x1,e1],...,[xn,en]], and L1 is the same as L except that any occurrence of xi is replaced by ei. Assume xi's are atoms and ei's are arbitrary expressions. E.g. the goal sub([a,[a,d],[e,a]],[[a,2]],L) should return L= [2,[2,d],[e,2]].
 % 
 % Note: S is intended as a substitution. In this case, Xi's are distinct, and they do not occur in ei's.
+
 
 
 
