@@ -132,6 +132,8 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 	F1 >= F2,
 	!,
 	merge([[A1, F1]|T1], T2, T).
+
+
 % 5 (1 mark)
 % Define a predicate
 % 
@@ -142,7 +144,7 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 % Note: S is intended as a substitution. In this case, Xi's are distinct, and they do not occur in ei's.
 
 
-
+% https://stackoverflow.com/questions/5850937/prolog-element-in-lists-replacement
 
 % 6 (2 marks)
 % The clique problem is a graph-theoretic problem of finding a subset of
