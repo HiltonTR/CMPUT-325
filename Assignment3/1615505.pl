@@ -63,8 +63,16 @@ flatten([A|L],R) :-
 xatom(A) :- atom(A).
 xatom(A) :- number(A).
 
-greater_list(L,Limit,X) :- 
+greater(L,Limit,X) :- 
 	findall(E,(member(E,L),E>Limit),Es),
+	member(X,Es).
+
+equal(L,Limit,X) :- 
+	findall(E,(member(E,L),E==Limit),Es),
+	member(X,Es).
+
+less(L,Limit,X) :- 
+	findall(E,(member(E,L),E<Limit),Es),
 	member(X,Es).
 
 filter([], _, _, _):-
@@ -74,8 +82,17 @@ filter([], _, _, _):-
 filter([L|R], O, N, W) :-
 	O == 'greaterThan',
 	flatten([L|R], L1),
-	findall(X, greater_list(L1, N, X), W).
+	findall(X, greater(L1, N, X), W).
 
+filter([L|R], O, N, W) :-
+	O == 'equal',
+	flatten([L|R], L1),
+	findall(X, equal(L1, N, X), W).
+
+filter([L|R], O, N, W) :-
+	O == 'lessThan',
+	flatten([L|R], L1),
+	findall(X, less(L1, N, X), W).
 
 
 % 4. (1 mark)
@@ -166,7 +183,7 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 % 
 % where L is a possibly nested list of atoms, S is a list of pairs in the form [[x1,e1],...,[xn,en]],
 % and L1 is the same as L except that any occurrence of xi is replaced by ei. Assume xi's are atoms 
-% and ei's are arbitrary expressions. E.g. the goal sub([a,[a,d],[e,a]],[[a,2]],L) 
+% and ei's are arbitrary expressions. E.g. the goal sub([a,[a,d],[e,a]],[[a,2]],L). 
 % should return L= [2,[2,d],[e,2]].
 % 
 % Note: S is intended as a substitution. In this case, Xi's are distinct, and they do not occur in ei's.
@@ -175,23 +192,21 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 
 sub([], [], []).
 sub([A|R], [[Var, Rep]], L) :-
-    % check if a is a list
-    %write('1'),
-    write(A),
-    ifList(A),
-    write(L).
+    is_list(A), 
+    sub(A, [[Var, Rep]], 0).
 
+sub([A|R], [[Var, Rep]], L) :-
+    xatom(A),
+    A \= Var,
+    %write(R),
+    sub(R, [[Var, Rep]], [L,A]).
 
-ifList(_) :-
-    isList(A).
+sub([A|R], [[Var, Rep]], L) :-
+    xatom(A),
+    A == Var,
+    %write(R),
+    sub(R, [[Var, Rep]], [L,Rep]).
 
-isList([_|_]):-
-    sub([R], [[Var, Rep]], [[A]|L]).
-isList([]):-
-    sub([R], [[Var, Rep]], [[A]|L]).
-
-isList(NotList) :-
-    sub([R], [[Var, Rep]], [A|L]).
 
 % 6 (2 marks)
 % The clique problem is a graph-theoretic problem of finding a subset of
@@ -223,4 +238,5 @@ isList(NotList) :-
 % Your program must not contain definitions for edge/2 or node/1
 % You can expect that facts for nodes edges will be appended to your
 % program before it is run.
+
 
