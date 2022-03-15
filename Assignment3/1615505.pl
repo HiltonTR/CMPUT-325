@@ -40,7 +40,9 @@ swap([A, B |L1], [B, A |L2]) :- swap(L1, L2).
 %
 % filter(+L,+OP,+N,-L1)
 %
-% where L is a possibly nested list of numbers; OP is one of the following words: equal, greaterThan, and lessThan; N is a number; and L1 is a flat list containing all the numbers in L such that the condition specified by OP and N is satisfied. E.g.
+% where L is a possibly nested list of numbers; OP is one of the following words: 
+% equal, greaterThan, and lessThan; N is a number; and L1 is a flat list containing 
+% all the numbers in L such that the condition specified by OP and N is satisfied. E.g.
 %
 % ?- filter([3,4,[5,2],[1,7,3]],greaterThan,3,W).
 % W= [4,5,7]
@@ -50,6 +52,29 @@ swap([A, B |L1], [B, A |L2]) :- swap(L1, L2).
 %
 % ?- filter([3,4,[5,2],[1,7,3]],lessThan,3,W).
 % W= [2,1]
+
+% taken from eclass
+flatten([],[]).
+flatten([A|L],[A|L1]) :-
+	xatom(A), flatten(L,L1).
+flatten([A|L],R) :-
+	flatten(A,A1), flatten(L,L1), append(A1,L1,R).
+
+xatom(A) :- atom(A).
+xatom(A) :- number(A).
+
+greater_list(L,Limit,X) :- 
+	findall(E,(member(E,L),E>Limit),Es),
+	member(X,Es).
+
+filter([], _, _, _):-
+	write('empty').
+
+% https://stackoverflow.com/questions/64984383/how-to-return-in-prolog-all-elements-from-right-to-left-greater-than-an-integer
+filter([L|R], O, N, W) :-
+	O == 'greaterThan',
+	flatten([L|R], L1),
+	findall(X, greater_list(L1, N, X), W).
 
 
 
@@ -139,12 +164,34 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 % 
 % sub(+L,+S,-L1)
 % 
-% where L is a possibly nested list of atoms, S is a list of pairs in the form [[x1,e1],...,[xn,en]], and L1 is the same as L except that any occurrence of xi is replaced by ei. Assume xi's are atoms and ei's are arbitrary expressions. E.g. the goal sub([a,[a,d],[e,a]],[[a,2]],L) should return L= [2,[2,d],[e,2]].
+% where L is a possibly nested list of atoms, S is a list of pairs in the form [[x1,e1],...,[xn,en]],
+% and L1 is the same as L except that any occurrence of xi is replaced by ei. Assume xi's are atoms 
+% and ei's are arbitrary expressions. E.g. the goal sub([a,[a,d],[e,a]],[[a,2]],L) 
+% should return L= [2,[2,d],[e,2]].
 % 
 % Note: S is intended as a substitution. In this case, Xi's are distinct, and they do not occur in ei's.
 
-
 % https://stackoverflow.com/questions/5850937/prolog-element-in-lists-replacement
+
+sub([], [], []).
+sub([A|R], [[Var, Rep]], L) :-
+    % check if a is a list
+    %write('1'),
+    write(A),
+    ifList(A),
+    write(L).
+
+
+ifList(_) :-
+    isList(A).
+
+isList([_|_]):-
+    sub([R], [[Var, Rep]], [[A]|L]).
+isList([]):-
+    sub([R], [[Var, Rep]], [[A]|L]).
+
+isList(NotList) :-
+    sub([R], [[Var, Rep]], [A|L]).
 
 % 6 (2 marks)
 % The clique problem is a graph-theoretic problem of finding a subset of
@@ -176,3 +223,4 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 % Your program must not contain definitions for edge/2 or node/1
 % You can expect that facts for nodes edges will be appended to your
 % program before it is run.
+
