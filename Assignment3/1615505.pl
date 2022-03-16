@@ -193,7 +193,7 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 sub([], [], []).
 sub([A|R], [[Var, Rep]], L) :-
     is_list(A), 
-    sub(A, [[Var, Rep]], 0).
+    sub(A, [[Var, Rep]], L).
 
 sub([A|R], [[Var, Rep]], L) :-
     xatom(A),
@@ -240,3 +240,83 @@ sub([A|R], [[Var, Rep]], L) :-
 % program before it is run.
 
 
+
+
+
+
+
+
+
+
+
+% 7.  [3 marks]
+% The question is about string conversion. Define a predicate
+% 
+%     convert(+Term,-Result)
+% 
+% with the following specification.
+% 
+% Term is a list (possibly empty) of single letters representing a string with the convention:
+% 
+%     * e represents an empty space
+%     * q represents a single quote
+% 
+% Functionality:
+% 
+% Given Term, Result should hold the same Term except that
+% 
+%     * anything between two matching q's is not changed;
+%     * any e's outside of a pair of matching q's are removed;
+%     * any letter outside a pair of matching q's is changed to letter w.
+%     * an unmatched q will be left as is.
+% 
+% Definition of matching q's:
+% 
+%       Any string with an odd number of occurrences of q has the last occurrence of
+%       q unmatched; all the preceding ones are matched as: the first and second
+%       form a pair, the 3rd and the 4th form the next pair, and so on.
+% 
+% Examples:
+% 
+% ?- convert([e,e,a,e,b,e],R)
+% R = [w,w] ?;
+% no
+% 
+% ?- convert([e,q,a,b,e,e],R).
+% R = [q,w,w]?;
+% no
+% 
+% ?- convert([e,a,e,e],R).
+% R = [w]?;
+% no
+% 
+% ?- convert([e,q,a,e,b,q,e,a,e],R).
+% R = [q,a,e,b,q,w]? ;
+% no
+% 
+% ?- convert([a,q,e,l,q,r,e,q,b,e],R).
+% R = [w,q,e,l,q,w,q,w]? ;
+% no
+% 
+% ?- convert([q,e,q,b,q,e,l,q,a,e],R).
+% R = [q,e,q,w,q,e,l,q,w] ? ;
+% no
+
+
+
+
+convert([], [], _).
+%?
+convert(T,R) :- convert(T, R, false).
+
+convert([e|T], R, false) :-	convert(T, R, false).
+
+convert([q|T], [q|R], false) :-	member(q, T), convert(T, R, true).
+
+convert([q|T], [q|R], false):- convert(T, R, false).
+
+convert([_|T], [w|R], false) :- convert(T, R, false).
+
+convert([q|T], [q|R], true) :- convert(T, R, false).
+
+convert([A|T], [A|R], true) :- convert(T, R, true).
