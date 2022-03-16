@@ -234,18 +234,26 @@ sub([A|R], [[Var, Rep]], L) :-
 % 
 % Requirement:
 % Define a predicate named clique(L) such that  findall(L, clique(L),
-% Cliques) will unify Cliques with a list containing all cliques. L should contain a single clique. The order that your predicate generates cliques does not matter.
+% Cliques) will unify Cliques with a list containing all cliques. L should contain a single clique. 
+% The order that your predicate generates cliques does not matter.
 % Your program must not contain definitions for edge/2 or node/1
 % You can expect that facts for nodes edges will be appended to your
 % program before it is run.
 
+clique(L) :- findall(X,node(X),Nodes), xsubset(L,Nodes), allConnected(L).
 
+xsubset([], _).
+xsubset([X|Xs], Set) :- xappend(_, [X|Set1], Set), xsubset(Xs, Set1).
 
+xappend([], L, L).
+xappend([H|T], L, [H|R]) :- xappend(T, L, R).
 
+allConnected([_]).
+allConnected([A|L]) :- connect(A, L), allConnected(L).
 
-
-
-
+connect(_, []).
+connect(A, [B|L]) :- edge(A,B), connect(A, L).
+connect(A, [B|L]) :- edge(B,A), connect(A, L).
 
 
 
