@@ -1,3 +1,6 @@
+% Assignment 3
+% Hilton Truong 1615505
+
 % 1. (1 mark)
 % Define a predicate
 %
@@ -8,12 +11,14 @@
 %
 % ?- setDifference([a,b,c,d,e,g],[b,a,c,e,f,q],S).
 % S=[d,g]
-% https://stackoverflow.com/questions/46793293/get-elements-which-are-not-in-second-list 
 
+% Base case
 setDifference([], _, []).
-setDifference([A|S1], L, [A|S2]) :- \+ 
-	member(A, L), 
+% If S1 is in S2 
+setDifference([A|S1], L, [A|S2]) :- 
+	\+ member(A, L), 
 	setDifference(S1, L, S2).
+% If S1 is not in S2 
 setDifference([A|S1], L, L2) :- 
 	member(A, L), 
 	setDifference(S1, L, L2).
@@ -63,7 +68,7 @@ flatten([],[]).
 flatten([A|L],[A|L1]) :-
 	xatom(A), flatten(L,L1).
 flatten([A|L],R) :-
-	flatten(A,A1), flatten(L,L1), append(A1,L1,R).
+	flatten(A,Atom1), flatten(L,L1), append(Atom1,L1,R).
 
 xatom(A) :- atom(A).
 xatom(A) :- number(A).
@@ -83,7 +88,6 @@ less(L,Limit,X) :-
 filter([], _, _, _):-
 	write('empty').
 
-% https://stackoverflow.com/questions/64984383/how-to-return-in-prolog-all-elements-from-right-to-left-greater-than-an-integer
 filter([L|R], O, N, W) :-
 	O == 'greaterThan',
 	flatten([L|R], L1),
@@ -114,72 +118,68 @@ filter([L|R], O, N, W) :-
 %        You can adopt any shorting algorithm you can find and you will not be penalized for it (just cite the source). 
 
 countAll(L, R) :-
-	count(L, N, [], _),
+	count(C, N, [], _),
 	merge_sort(N, R).
 
-occurrences(A, [], N, F) :-
-	N = [A, F].
-% If we've found an occurrences of atom A, increase the frequency count and
-% continue
-occurrences(A, [B|L], N, F) :-
-	A == B,
-	!,
-	F1 is F + 1,
-	occurrences(A, L, N, F1).
-
-% If we've found an atom that isn't A, continue
-occurrences(A, [_|L], N, F) :-
-	!,
-	occurrences(A, L, N, F).
-
-% Count iterates over the list, creating a list of the format
-% [[Atom, Frequency], ...]
-
-% Empty case. 
+% empty list
 count([], [], S, S).
-% If an atom has been counted we continue. 
+% if atom has already been previously accounted for skip
 count([A|L], N, S, V) :-
 	member(A, S),
-	!,
 	count(L, N, S, V).
-% We've found a new atom. Count occurrencess of it, and append it to our list.
-% Also append it to the list of seen atoms.
+% if this is a new atom, count the amount of times it appears
 count([A|L], [X|N], S, V) :-
-	!,
-	occurrences(A, L, X, 1),
+	occurance(A, L, X, 1),
 	count(L, N, [A|S], V).
 
-% Merge sort and halve source:
+
+occurance(A, [], N, C) :-
+	N = [A, C].
+% If we've found an occurance of atom A, increase the frequency count and
+% continue
+occurance(A, [B|L], N, C) :-
+	A == B,
+	Count is C + 1,
+	occurance(A, L, N, Count).
+% continue if the atom is not A
+occurance(A, [_|L], N, C) :-
+	occurance(A, L, N, C).
+
+
+% Merge sort and divide from the following: 
 % http://kti.mff.cuni.cz/~bartak/prolog/sorting.html#merge
 % http://kti.mff.cuni.cz/~bartak/prolog/recursion.html 
-% Modified to sort tuples in the form of [Atom, Frequency]
-% in descending order by frequency.
-halve(L, A, B) :- hv(L, [], A, B).
-hv(L, L, [], L). % for lists of even length
+
+divide(L, A, B) :- 
+	hv(L, [], A, B).
+hv(L, L, [], L). 
 hv(L, [_|L], [], L).
-hv([H|T], Acc, [H|L], B) :- !, hv(T, [_|Acc], L, B).
+hv([H|T], Acc, [H|L], B) :- 
+	!, 
+	hv(T, [_|Acc], L, B).
 
 merge_sort([], []).
 merge_sort([X], [X]).
 merge_sort(L, S) :-
 	L = [_, _ | _],
-	halve(L, L1, L2),
+	divide(L, L1, L2),
 	!,
 	merge_sort(L1, S1),
 	merge_sort(L2, S2),
 	merge(S1, S2, S).
-
 merge([], L, L).
-merge(L, [], L) :- !, L \= [].
-merge([[A1, F1]|T1], [[A2, F2]|T2], [[A1, F1]|T]) :-
-	F1 =< F2,
+merge(L, [], L) :- 
+	!, 
+	L \= [].
+merge([[Atom1, Count1]|T1], [[Atom2, Count2]|T2], [[Atom1, Count1]|T]) :-
+	Count1 >= Count2,
 	!,
-	merge(T1, [[A2, F2]|T2], T).
+	merge(T1, [[Atom2, Count2]|T2], T).
+merge([[Atom1, Count1]|T1], [[Atom2, Count2]|T2], [[Atom2, Count2]|T]) :-
+	Count1 =< Count2,
+	!,
+	merge([[Atom1, Count1]|T1], T2, T).
 
-merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
-	F1 >= F2,
-	!,
-	merge([[A1, F1]|T1], T2, T).
 
 
 % 5 (1 mark)
@@ -194,24 +194,30 @@ merge([[A1, F1]|T1], [[A2, F2]|T2], [[A2, F2]|T]) :-
 % 
 % Note: S is intended as a substitution. In this case, Xi's are distinct, and they do not occur in ei's.
 
+% Inspiriation taken from
 % https://stackoverflow.com/questions/5850937/prolog-element-in-lists-replacement
 
 sub([], [], []).
-sub([A|R], [[Var, Rep]], L) :-
-    is_list(A), 
-    sub(A, [[Var, Rep]], L).
+sub(L, [], L).
+sub(L, [S1|SR], R) :-  
+	rep(L, S1, R1), 
+	sub(R1, SR, R).
 
-sub([A|R], [[Var, Rep]], L) :-
-    xatom(A),
-    A \= Var,
-    %write(R),
-    sub(R, [[Var, Rep]], [L,A]).
 
-sub([A|R], [[Var, Rep]], L) :-
-    xatom(A),
-    A == Var,
-    %write(R),
-    sub(R, [[Var, Rep]], [L,Rep]).
+rep([], [,], []).
+rep([A|R], [A,B], L) :- 
+	+is_list(A), 
+	rep(R, [A,B], R2), 
+	L = [B|R2].
+rep([A|R], [C,D], L) :- 
+	+is_list(A), 
+	A == C,  
+	rep(R, [C,D], R2), 
+	L = [A|R2].
+rep([A|R], [C,D], L) :- 
+	rep( A,[C,D] ,R2), 
+	rep( R,[C,D], R3), 
+	L=[R2|R3].
 
 
 % 6 (2 marks)
@@ -223,12 +229,12 @@ sub([A|R], [[Var, Rep]], L) :-
 % edge(A,B) implies edge(B,A). For example, the following Prolog facts
 % represent a graph
 % 
-% edge(a,b).
-% edge(b,c).
-% edge(c,a).
-% node(a).
-% node(b).
-% node(c).
+edge(a,b).
+edge(b,c).
+edge(c,a).
+node(a).
+node(b).
+node(c).
 
 % The set of nodes [a,b,c] is a clique, so is every subset of it. Note
 % that the empty subset is a clique, by definition.
@@ -246,20 +252,36 @@ sub([A|R], [[Var, Rep]], L) :-
 % You can expect that facts for nodes edges will be appended to your
 % program before it is run.
 
-clique(L) :- findall(X,node(X),Nodes), xsubset(L,Nodes), allConnected(L).
+clique(L) :- 
+	findall(A, node(A), Nodes), 
+	ss(L, Nodes), 
+	linked(L).
 
-xsubset([], _).
-xsubset([X|Xs], Set) :- xappend(_, [X|Set1], Set), xsubset(Xs, Set1).
+% custom subset function
+ss([], _).
+ss([A|B], S) :- 
+	apnd(_, [A|S1], S), 
+	ss(B, S1).
 
-xappend([], L, L).
-xappend([H|T], L, [H|R]) :- xappend(T, L, R).
+% custom append function 
+apnd([], L, L).
+apnd([F|T], L, [F|R]) :- 
+	apnd(T, L, R).
 
-allConnected([_]).
-allConnected([A|L]) :- connect(A, L), allConnected(L).
+% sees if all the nodes are connected
+linked([]).
+linked([A|L]) :- 
+	connect(A, L), 
+	linked(L).
 
+% gets two nodes and sees if there's an edge between both nodes
 connect(_, []).
-connect(A, [B|L]) :- edge(A,B), connect(A, L).
-connect(A, [B|L]) :- edge(B,A), connect(A, L).
+connect(A, [B|L]) :- 
+	edge(A,B), 
+	connect(A, L).
+connect(A, [B|L]) :- 
+	edge(B,A), 
+	connect(A, L).
 
 
 
@@ -318,19 +340,27 @@ connect(A, [B|L]) :- edge(B,A), connect(A, L).
 
 
 
-
+% empty case
 convert([], [], _).
-
-convert(T,R) :- convert(T, R, false).
-
-convert([e|T], R, false) :-	convert(T, R, false).
-
-convert([q|T], [q|R], false) :-	member(q, T), convert(T, R, true).
-
-convert([q|T], [q|R], false):- convert(T, R, false).
-
-convert([_|T], [w|R], false) :- convert(T, R, false).
-
-convert([q|T], [q|R], true) :- convert(T, R, false).
-
-convert([A|T], [A|R], true) :- convert(T, R, true).
+% base case
+convert(T,R) :- 
+	convert(T, R, false).
+% remove space if there's a space
+convert([e|T], R, false) :-	
+	convert(T, R, false).
+% if a quote is found toggle the boolean to be true
+convert([q|T], [q|R], false) :-	
+	member(q, T), 
+	convert(T, R, true).
+% leave as is if its a quote and theres no more quotes
+convert([q|T], [q|R], false):- 
+	convert(T, R, false).
+% change to a w if atom is not a quote or space
+convert([_|T], [w|R], false) :- 
+	convert(T, R, false).
+% change th boolean to false when an end quote is reached
+convert([q|T], [q|R], true) :- 
+	convert(T, R, false).
+% leave as is if atom isnt a quote but boolean is true
+convert([A|T], [A|R], true) :- 
+	convert(T, R, true).
