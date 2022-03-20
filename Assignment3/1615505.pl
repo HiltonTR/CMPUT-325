@@ -129,21 +129,7 @@ count([A|L], N, S, V) :-
 	count(L, N, S, V).
 % if this is a new atom, count the amount of times it appears
 count([A|L], [X|N], S, V) :-
-	occurance(A, L, X, 1),
 	count(L, N, [A|S], V).
-
-
-occurance(A, [], N, C) :-
-	N = [A, C].
-% If we've found an occurance of atom A, increase the frequency count and
-% continue
-occurance(A, [B|L], N, C) :-
-	A == B,
-	Count is C + 1,
-	occurance(A, L, N, Count).
-% continue if the atom is not A
-occurance(A, [_|L], N, C) :-
-	occurance(A, L, N, C).
 
 
 % Merge sort and divide from the following: 
@@ -203,7 +189,8 @@ sub(L, [S1|SR], R) :-
 	rep(L, S1, R1), 
 	sub(R1, SR, R).
 
-
+% this predicate checks if the element is a list and if it is and the letter matches,
+% it will substitute it into the new list.
 rep([], [,], []).
 rep([A|R], [A,B], L) :- 
 	+is_list(A), 
