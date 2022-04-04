@@ -220,23 +220,31 @@ sudoku(Rows) :-
     blocks(Ds, Es, Fs),
     blocks(Gs, Hs, Is).
 
+xlength(L, Ls) :- length(Ls, L).   
+
 grid(9, Rows) :-
     length(Rows, 9),
-    maplist(same_length(Rows), Rows).
+    maplist(xlength(9), Rows).
+
 
 xall-distinct(X):-
     maplist(all_different, X).
 
 % https://stackoverflow.com/questions/20131904/check-if-all-numbers-in-a-list-are-different-in-prolog
-xdifferent(L) :- 
-    \+ (append(_,[X|R],L), memberchk(X,R)).
+xdifferent([]).
+xdifferent([L|Rest]) :- 
+    \+ (append(_,[X|R],L), memberchk(X,R)),
+    xdifferent(Rest).
+
+
 
 % https://stackoverflow.com/questions/4280986/how-to-transpose-a-matrix-in-prolog
 xtranspose([[]|_], []).
-xtranspose(Matrix, [Row|Rows]) :- transpose_1st_col(Matrix, Row, RestMatrix),
+xtranspose(Matrix, [Row|Rows]) :- transposecol(Matrix, Row, RestMatrix),
                                  xtranspose(RestMatrix, Rows).
-transpose_1st_col([], [], []).
-transpose_1st_col([[H|T]|Rows], [H|Hs], [T|Ts]) :- transpose_1st_col(Rows, Hs, Ts).
+transposecol([], [], []).
+transposecol([[H|T]|Rows], [H|Hs], [T|Ts]) :- 
+    transposecol(Rows, Hs, Ts).
 
 
 
