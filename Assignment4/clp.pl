@@ -85,10 +85,71 @@ insert_data :-
 
 assignments([as1, as2, as3, as4, midterm, final]).
 
+%
+% Question 1 A
+%
+
 query1(Semester, Name, Total) :-
-    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final).
+    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+    assignments(Assignments),
+    length(Assignments, AssignmentCount),
+    repeat(Semester, AssignmentCount, S), 
+    zip(S, Assignments, [As1, As2, As3, As4, Midterm, Final], CalcList),
+    map(CalcList, calc, Results),
+    reduce(Results, add, Total).
 
+calc([Semester, Assignment, Mark], Result) :-
+    calc(Semester, Assignment, Mark, Result).
 
+calc(Semester, Assignment, Mark, Result) :-
+    setup(Semester, Assignment, Total, Wieght),
+    Result is Mark / Total * Wieght * 100.
+
+%
+% Question 1 B
+%
+
+query2(Semester, Improved) :-
+    findall(X, c325(Semester, X, _, _, _, _, _, _), Students),
+    length(Students, NumStudents),
+    repeat(Semester, NumStudents, S),
+    zip(S, Students, In),
+    filter(In, isImproved, Filtered),
+    map(Filtered, getName, Improved),
+    !.
+
+getName([_, Name], Name).
+
+isImproved([Semester, Name]) :-
+    isImproved(Semester, Name).
+isImproved(Semester, Name) :-
+    c325(Semester, Name, _, _, _, _, MidtermMark, FinalMark),
+    setup(Semester, midterm, MidtermTotal, _),
+    setup(Semester, final, FinalTotal, _),
+    (MidtermMark / MidtermTotal) < (FinalMark / FinalTotal).
+
+%
+% Question 1 C
+%
+
+query3(Semester, Name, Type, NewMark) :-
+    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+    assignments(L),
+    zip(L, [As1, As2, As3, As4, Midterm, Final], AssignmentMap),
+    updateMark(AssignmentMap, 
+	       Type, 
+	       NewMark, 
+	       [NewAs1, NewAs2, NewAs3, NewAs4, NewMidterm, NewFinal]),
+    retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
+    assert(c325(Semester, Name, NewAs1, NewAs2, NewAs3, NewAs4, NewMidterm, NewFinal)).
+
+query3(Semester, Name, _, _) :-
+    \+ c325(Semester, Name, _, _, _, _, _, _),
+    write('record not found').
+
+updateMark([[Type, _]|Rest], Type, NewMark, [NewMark|Rest]).
+updateMark([[_, Mark]|Rest], Type, NewMark, [Mark|C]) :-
+    updateMark(Rest, Type, NewMark, C).
 
 
 
@@ -147,10 +208,21 @@ query1(Semester, Name, Total) :-
 % https://stackoverflow.com/questions/11882760/cryptarithmetic-puzzle-prolog 
 % https://ai.ia.agh.edu.pl/pl:prolog:pllib:cryptoarithmetic_puzzle_2
 
+encrypt(W1,W2,W3) :- 
+    length(W1,N),           % if you need to know the lengths of words
+    length(W3,N1),   
+    append(W1,W2,W),
+    append(W,W3,L),
+    list_to_set(L,Letters),     % remove duplicates, a predicate in the list library
+    [LeadLetter1|_] = W1,   % identify the leading letter to be set to non-zero
+    [LeadLetter2|_] = W2,
+    [LeadLetter3|_] = W3,
+    !,    
+
 sum(N1, N2, N)  :-                    % Numbers represented as lists of digits
-  sum1( N1, N2, N, 
-	0, 0,                         % Carries from right and to left both 0
-        [0,1,2,3,4,5,6,7,8,9], _).    % All digits available
+    sum1( N1, N2, N, 
+        0, 0,                         % Carries from right and to left both 0
+            [0,1,2,3,4,5,6,7,8,9], _).    % All digits available
  
 sum1( [], [], [], C, C, Digits, Digits).
  
