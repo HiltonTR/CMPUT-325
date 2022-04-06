@@ -86,9 +86,6 @@ insert_data :-
 
 assignments([as1, as2, as3, as4, midterm, final]).
 
-%
-% Question 1 A
-%
 
 query1(Semester, Name, Total) :-
 	setup(Semester, as1, MaxAs1, Weight1),
@@ -106,9 +103,6 @@ query1(Semester, Name, Total) :-
     Final / MaxFinal * WeightFinal.
 
 
-%
-% Question 1 B
-%
 
 query2(Semester, L) :-
 	findall(Name, getResults(Semester, Name), L).
@@ -118,9 +112,8 @@ getResults(Semester, Name) :-
 	setup(Semester, final, FinalMark, _),
 	c325(Semester, Name, _, _, _, _, Midterm, Final),
 	Midterm / MidtermMark < Final / FinalMark.
-%
-% Question 1 C
-%
+
+
 
 query3(Semester, Name, as1, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
@@ -224,6 +217,7 @@ encrypt(W1,W2,W3) :-
     [LeadLetter2|_] = W2,
     [LeadLetter3|_] = W3,
     !, % never need to redo the above
+
     all_diff(Letters),
     sum_constraint(LeadLetter3, N, N1),
     Sum4 #= Sum3,
@@ -311,31 +305,34 @@ sudoku(Rows) :-
     blocks(Ds, Es, Fs),
     blocks(Gs, Hs, Is).
 
-xlength(L, Ls) :- length(Ls, L).   
+xlength(L, Ls) :- 
+    length(Ls, L).   
 
 grid(9, Rows) :-
     length(Rows, 9),
     maplist(xlength(9), Rows).
 
-
+% I couldnt figure out how to get my different to work so i just used the library definition. 
 xall-distinct(X):-
     maplist(all_different, X).
 
-% https://stackoverflow.com/questions/20131904/check-if-all-numbers-in-a-list-are-different-in-prolog
+% user of memberchk found from here
+% https://stackoverflow.com/questions/33910925/define-a-rule-to-determine-if-a-list-contains-a-given-member
 xdifferent([]).
 xdifferent([L|Rest]) :- 
-    \+ (append(_,[X|R],L), memberchk(X,R)),
+    \+ (append(_,[X|R],L), 
+    memberchk(X,R)),
     xdifferent(Rest).
 
 
-
-% https://stackoverflow.com/questions/4280986/how-to-transpose-a-matrix-in-prolog
 xtranspose([[]|_], []).
-xtranspose(Matrix, [Row|Rows]) :- transposecol(Matrix, Row, RestMatrix),
-                                 xtranspose(RestMatrix, Rows).
+xtranspose(Mat, [Row|Rows]) :- 
+    transposecol(Mat, Row, Matrix),
+    xtranspose(Matrix, Rows).
+
 transposecol([], [], []).
-transposecol([[H|T]|Rows], [H|Hs], [T|Ts]) :- 
-    transposecol(Rows, Hs, Ts).
+transposecol([[First|Remainder]|Rows], [First|Rest1], [Remainder|Rest2]) :- 
+    transposecol(Rows, Rest1, Rest2).
 
 
 
@@ -394,155 +391,3 @@ t(Rows) :-
 % means that paper #1 is assigned to lily and peter, and paper #2 to john and ann, etc. Papers will be 
 % numbered consecutively starting from 1.  See this instance for an example. 
 
-
-assign(W1,W2) :-
-    findall(P, paper(P, _, _, _), Papers),
-    findall(A, (reviewer(A, _, _)), Reviewers),
-    findall(T, paper(_, _, _, T), Topics),
-    retractData(),
-    % digitize the atoms
-    identifyTopic(Topics, 1),
-    identifyReviewers(Reviewers, 1),
-    digitizePaper(Papers),
-    workLoadAtMost(MaxLoad),
-    % fill out W1
-    length(Papers, Len),
-    length(W1, Len),
-    length(WI1, Len),
-    length(W2, Len),
-    length(WI2, Len),
-    append(WI1, WI2, WI3),
-    % add the constraints
-    expertyReview(WI1, WI2, 1),
-    noSelfReview(WI1, WI2, 1),
-    paperHasTwoReviewers(WI1, WI2),
-    considerMaxLoad(WI3, MaxLoad),
-    !,
-    labeling([ff], WI1),
-    labeling([ff], WI2),
-    assignRealNames(W1, WI1),
-    assignRealNames(W2, WI2).
- 
- identifyTopic([], _).
- identifyTopic([T|Topics], Id) :-
-    assert(topicId(Id, T)),
-    Id1 is Id + 1,
-    identifyTopic(Topics, Id1).
- 
- topicId(_, _) :- false.
- 
- identifyReviewers([], _).
- identifyReviewers([R|Reviewers], Id) :-
-    reviewer(R, T1, T2),
-    topicToId(T1, TI1),
-    topicToId(T2, TI2),
-    assert(reviewerId(Id, R)),
-    assert(reviewerDataId(Id, TI1, TI2)),
-    Id1 is Id + 1,
-    identifyReviewers(Reviewers, Id1).
- 
- % prevent warnings
- reviewerId(_, _) :- false.
- reviewerDataId(_, _, _) :- false.
- 
- retractData() :-
-    retractall(topicId(_, _)),
-    retractall(reviewerId(_, _)),
-    retractall(reviewerDataId(_, _, _)),
-    retractall(paperId(_, _, _, _)).
- 
- digitizePaper([]).
- digitizePaper([P|Papers]) :-
-    paper(P, R1, R2, T),
-    reviewerToId(R1, RI1),
-    reviewerToId(R2, RI2),
-    topicToId(T, TI),
-    assert(paperId(P, RI1, RI2, TI)),
-    digitizePaper(Papers).
- 
- reviewerToId(R, RI) :-
-    reviewerId(RI, R),
-    !.
- reviewerToId(_, 0). % non-registered reviewer 
- 
- topicToId(T, TI) :-
-    topicId(TI, T),
-    !.
- topicToId(_, 0).
- 
- noSelfReview([], _, _).
- noSelfReview([W1|L1], [W2|L2], Id) :-
-    paperId(Id, R1, R2, _),
-    W1 #\= R1,
-    W1 #\= R2,
-    W2 #\= R1,
-    W2 #\= R2,
-    Id1 is Id + 1,
-    noSelfReview(L1, L2, Id1).
- 
- paperId(-1, _, _, _) :- false. % prevent warning
- 
- expertyReview([], _, _).
- expertyReview([W1|L1], [W2|L2], Id) :-
-    paperId(Id, _, _, T),
-    findall(R, (reviewerDataId(R, T, _); reviewerDataId(R, _, T)), RL),
-    getDomainUnion(RL, RD),
-    W1 in RD,
-    W2 in RD,
-    Id1 is Id + 1,
-    expertyReview(L1, L2, Id1).
- 
- reviewerDataId(_, _, _) :- false. % prevent warning
- 
- assignDomain4(_, _, []).
- assignDomain4(W1, W2, [T|L]) :-
-    W1 in T,
-    W2 in T,
-    assignDomain4(W1, W2, L).
- 
- paperHasTwoReviewers([], _).
- paperHasTwoReviewers([W1|L1], [W2|L2]) :-
-    W1 #\= W2,
-    paperHasTwoReviewers(L1, L2).
- 
- % todo: over here
- considerMaxLoad([], _).
- considerMaxLoad([R|L], LoadMax) :-
-    count(R, L, C),
-    C #< LoadMax,
-    considerMaxLoad(L, LoadMax).
- 
- count(_, [], 0) :- !.
- count(X, [X|L], N) :-
-    !,
-    count(X, L, N1),
-    N is N1 + 1.
- count(X, [_|L], N) :-
-    count(X, L, N).
- 
- assignRealNames([], _).
- assignRealNames([W|WL], [I|IL]) :-
-    reviewerId(I, R),
-    W = R,
-    assignRealNames(WL, IL).
-
-
-
-
-
-paper(1,lily,xxx,ai).
-paper(2,peter,john,database).
-paper(3,ann,xxx,theory).
-paper(4,ken,lily,network).
-paper(5,kris,xxx,games).
-
-reviewer(lily,theory,network).
-reviewer(john,ai,theory).
-reviewer(peter,database,network).
-reviewer(ann,theory,network).
-reviewer(kris,theory,games).
-reviewer(ken,database,games).
-reviewer(bill,database,ai).
-reviewer(jim,theory,games).
-
-workLoadAtMost(2).
