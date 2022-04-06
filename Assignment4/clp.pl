@@ -61,6 +61,7 @@
 
 
 :- use_module(library(clpfd)).
+:- use_module(library(lists)).
 
 insert_data :-
     assert(c325(fall_2021,aperf,15,15,15,15,75,99)),
@@ -90,66 +91,71 @@ assignments([as1, as2, as3, as4, midterm, final]).
 %
 
 query1(Semester, Name, Total) :-
-    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
-    assignments(Assignments),
-    length(Assignments, AssignmentCount),
-    repeat(Semester, AssignmentCount, S), 
-    zip(S, Assignments, [As1, As2, As3, As4, Midterm, Final], CalcList),
-    map(CalcList, calc, Results),
-    reduce(Results, add, Total).
+	setup(Semester, as1, MaxAs1, Weight1),
+	setup(Semester, as2, MaxAs2, Weight2),
+	setup(Semester, as3, MaxAs3, Weight3),
+	setup(Semester, as4, MaxAs4, Weight4),
+	setup(Semester, midterm, MaxMidterm, WeightMidterm),
+	setup(Semester, final, MaxFinal, WeightFinal),
+	c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+	Total is As1 / MaxAs1 * Weight1 + 
+    As2 / MaxAs2 * Weight2 + 
+    As3 / MaxAs3 * Weight3 + 
+    As4 / MaxAs4 * Weight4 + 
+    Midterm / MaxMidterm * WeightMidterm + 
+    Final / MaxFinal * WeightFinal.
 
-calc([Semester, Assignment, Mark], Result) :-
-    calc(Semester, Assignment, Mark, Result).
-
-calc(Semester, Assignment, Mark, Result) :-
-    setup(Semester, Assignment, Total, Wieght),
-    Result is Mark / Total * Wieght * 100.
 
 %
 % Question 1 B
 %
 
-query2(Semester, Improved) :-
-    findall(X, c325(Semester, X, _, _, _, _, _, _), Students),
-    length(Students, NumStudents),
-    repeat(Semester, NumStudents, S),
-    zip(S, Students, In),
-    filter(In, isImproved, Filtered),
-    map(Filtered, getName, Improved),
-    !.
+query2(Semester, L) :-
+	findall(Name, getResults(Semester, Name), L).
 
-getName([_, Name], Name).
-
-isImproved([Semester, Name]) :-
-    isImproved(Semester, Name).
-isImproved(Semester, Name) :-
-    c325(Semester, Name, _, _, _, _, MidtermMark, FinalMark),
-    setup(Semester, midterm, MidtermTotal, _),
-    setup(Semester, final, FinalTotal, _),
-    (MidtermMark / MidtermTotal) < (FinalMark / FinalTotal).
-
+getResults(Semester, Name) :-
+	setup(Semester, midterm, MidtermMark, _),
+	setup(Semester, final, FinalMark, _),
+	c325(Semester, Name, _, _, _, _, Midterm, Final),
+	Midterm / MidtermMark < Final / FinalMark.
 %
 % Question 1 C
 %
 
-query3(Semester, Name, Type, NewMark) :-
+query3(Semester, Name, as1, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
-    assignments(L),
-    zip(L, [As1, As2, As3, As4, Midterm, Final], AssignmentMap),
-    updateMark(AssignmentMap, 
-	       Type, 
-	       NewMark, 
-	       [NewAs1, NewAs2, NewAs3, NewAs4, NewMidterm, NewFinal]),
     retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
-    assert(c325(Semester, Name, NewAs1, NewAs2, NewAs3, NewAs4, NewMidterm, NewFinal)).
+    assert(c325(Semester, Name, NewMark, As2, As3, As4, Midterm, Final)).
 
-query3(Semester, Name, _, _) :-
-    \+ c325(Semester, Name, _, _, _, _, _, _),
-    write('record not found').
+query3(Semester, Name, as2, NewMark) :-
+    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+    retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
+    assert(c325(Semester, Name, As1, NewMark, As3, As4, Midterm, Final)).
 
-updateMark([[Type, _]|Rest], Type, NewMark, [NewMark|Rest]).
-updateMark([[_, Mark]|Rest], Type, NewMark, [Mark|C]) :-
-    updateMark(Rest, Type, NewMark, C).
+query3(Semester, Name, as3, NewMark) :-
+    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+    retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
+    assert(c325(Semester, Name, As1, As2, NewMark, As4, Midterm, Final)).
+
+query3(Semester, Name, as4, NewMark) :-
+    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+    retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
+    assert(c325(Semester, Name, As1, As2, As3, NewMark, Midterm, Final)).
+
+query3(Semester, Name, midterm, NewMark) :-
+    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+    retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
+    assert(c325(Semester, Name, As1, As2, As3, As4, NewMark, Final)).
+
+query3(Semester, Name, final, NewMark) :-
+    c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
+    retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
+    assert(c325(Semester, Name, As1, As2, As3, As4, Midterm, NewMark)).
+
+query3(_,_,_,_):-
+    write('Record not found').
+
+
 
 
 
@@ -209,43 +215,56 @@ updateMark([[_, Mark]|Rest], Type, NewMark, [Mark|C]) :-
 % https://ai.ia.agh.edu.pl/pl:prolog:pllib:cryptoarithmetic_puzzle_2
 
 encrypt(W1,W2,W3) :- 
-    length(W1,N),           % if you need to know the lengths of words
+    length(W1,N), % if you need to know the lengths of words
     length(W3,N1),   
     append(W1,W2,W),
     append(W,W3,L),
-    list_to_set(L,Letters),     % remove duplicates, a predicate in the list library
-    [LeadLetter1|_] = W1,   % identify the leading letter to be set to non-zero
+    list_to_set(L, Letters), % remove duplicates, a predicate in list library
+    [LeadLetter1|_] = W1, % identify the leading letter to be set to non-zero
     [LeadLetter2|_] = W2,
     [LeadLetter3|_] = W3,
-    !,    
-
-sum(N1, N2, N)  :-                    % Numbers represented as lists of digits
-    sum1( N1, N2, N, 
-        0, 0,                         % Carries from right and to left both 0
-            [0,1,2,3,4,5,6,7,8,9], _).    % All digits available
+    !, % never need to redo the above
+    all_diff(Letters),
+    sum_constraint(LeadLetter3, N, N1),
+    Sum4 #= Sum3,
+    LeadLetter1 #\= 0,
+    LeadLetter2 #\= 0,
+    LeadLetter3 #\= 0,
+    get_sum(W1, Sum1),
+    get_sum(W2, Sum2),
+    Sum3 #= Sum1 + Sum2,
+    get_sum(W3, Sum4),
+    Letters ins 0..9,
+    label(Letters).
  
-sum1( [], [], [], C, C, Digits, Digits).
+ sum_constraint(_, A, A) :- !.
+ sum_constraint(Letter, _, _) :- Letter #= 1.
  
-sum1( [D1|N1], [D2|N2], [D|N], C1, C, Digs1, Digs)  :-
-  sum1( N1, N2, N, C1, C2, Digs1, Digs2),
-  digitsum( D1, D2, C2, D, C, Digs2, Digs).
+ get_sum([], 0).
+ get_sum([A|L], Sum) :-
+    length([A|L], Len),
+    Exp is Len - 1,
+    power(10, Exp, P),
+    Sum1 #= A*P,
+    get_sum(L, Sum2),
+    Sum #= Sum1 + Sum2.
  
-digitsum( D1, D2, C1, D, C, Digs1, Digs)  :-
-  del_var( D1, Digs1, Digs2),        % Select an available digit for D1
-  del_var( D2, Digs2, Digs3),        % Select an available digit for D2
-  del_var( D, Digs3, Digs),          % Select an available digit for D
-  S  is  D1 + D2 + C1,    
-  D  is  S mod 10,                   % Reminder
-  C  is  S // 10.                    % Integer division
+ power(_, 0, 1) :- !.
+ power(Base, Exp, Result) :-
+    Exp1 is Exp - 1,
+    power(Base, Exp1, Result1),
+    Result is Result1 * Base.
  
-del_var( A, L, L) :-
-  nonvar(A), !.                      % A already instantiated
+ all_diff([_]).
+ all_diff([A|L]) :-
+    diff(A, L),
+    all_diff(L).
  
-del_var( A, [A|L], L).
+ diff(_, []).
+ diff(A, [B|L]) :-
+    A #\= B,
+    diff(A,L).
  
-del_var( A, [B|L], [B|L1])  :-
-  del_var(A, L, L1).
-
 
 
 % ----------------------------------------------------------------------------------------------------------------------
@@ -342,3 +361,188 @@ t(Rows) :-
     maplist(labeling([ff]), Rows),
     maplist(writeln, Rows).
 
+
+
+% ----------------------------------------------------------------------------------------------------------------------
+
+
+% Question 5 (3 marks)
+% As a conference program chair, you are to assign papers to reviewers, given facts of the form
+%      paper(ID, Co-author1, Co-author2, Subject)
+%      reviewer(Name, Subject1, Subject2)
+
+% where each paper is identified by its id number, co-authors (for simplicity assume no more than two; 
+%     for single-authored papers, Co-author2 is filled with xxx), and subject area, and each reviewer 
+%     is identified by name and two subject areas of expertise. For example, the input data may look like
+%     paper(2, john, lily, ai).
+%     paper(3, ken, xxx, database).
+%     reviewer(audrey, ai, logic).
+%     ......
+
+% What we want is a paper review assignment satisfying
+
+% (1) No one reviews his/her own paper;
+% (2) For a reviewer to review an assigned paper, one of his/her areas of expertise must match the paper's subject.
+% (3) Each paper is assigned to 2 reviewers; and
+% (4) No reviewer is assigned more than k papers, where k will be given as a fact: workLoadAtMost(k).
+% You should write a program so that a paper assignment is generated by
+% ?-   assign(W1,W2).
+% where W1 and W2 denote a list of papers assigned to each be reviewed by two people. Positions in a list 
+% represents a paper ID. E.g.
+% W1 = [lily,john,...]
+% W2 =[peter, ann,...]
+% means that paper #1 is assigned to lily and peter, and paper #2 to john and ann, etc. Papers will be 
+% numbered consecutively starting from 1.  See this instance for an example. 
+
+
+assign(W1,W2) :-
+    findall(P, paper(P, _, _, _), Papers),
+    findall(A, (reviewer(A, _, _)), Reviewers),
+    findall(T, paper(_, _, _, T), Topics),
+    retractData(),
+    % digitize the atoms
+    identifyTopic(Topics, 1),
+    identifyReviewers(Reviewers, 1),
+    digitizePaper(Papers),
+    workLoadAtMost(MaxLoad),
+    % fill out W1
+    length(Papers, Len),
+    length(W1, Len),
+    length(WI1, Len),
+    length(W2, Len),
+    length(WI2, Len),
+    append(WI1, WI2, WI3),
+    % add the constraints
+    expertyReview(WI1, WI2, 1),
+    noSelfReview(WI1, WI2, 1),
+    paperHasTwoReviewers(WI1, WI2),
+    considerMaxLoad(WI3, MaxLoad),
+    !,
+    labeling([ff], WI1),
+    labeling([ff], WI2),
+    assignRealNames(W1, WI1),
+    assignRealNames(W2, WI2).
+ 
+ identifyTopic([], _).
+ identifyTopic([T|Topics], Id) :-
+    assert(topicId(Id, T)),
+    Id1 is Id + 1,
+    identifyTopic(Topics, Id1).
+ 
+ topicId(_, _) :- false.
+ 
+ identifyReviewers([], _).
+ identifyReviewers([R|Reviewers], Id) :-
+    reviewer(R, T1, T2),
+    topicToId(T1, TI1),
+    topicToId(T2, TI2),
+    assert(reviewerId(Id, R)),
+    assert(reviewerDataId(Id, TI1, TI2)),
+    Id1 is Id + 1,
+    identifyReviewers(Reviewers, Id1).
+ 
+ % prevent warnings
+ reviewerId(_, _) :- false.
+ reviewerDataId(_, _, _) :- false.
+ 
+ retractData() :-
+    retractall(topicId(_, _)),
+    retractall(reviewerId(_, _)),
+    retractall(reviewerDataId(_, _, _)),
+    retractall(paperId(_, _, _, _)).
+ 
+ digitizePaper([]).
+ digitizePaper([P|Papers]) :-
+    paper(P, R1, R2, T),
+    reviewerToId(R1, RI1),
+    reviewerToId(R2, RI2),
+    topicToId(T, TI),
+    assert(paperId(P, RI1, RI2, TI)),
+    digitizePaper(Papers).
+ 
+ reviewerToId(R, RI) :-
+    reviewerId(RI, R),
+    !.
+ reviewerToId(_, 0). % non-registered reviewer 
+ 
+ topicToId(T, TI) :-
+    topicId(TI, T),
+    !.
+ topicToId(_, 0).
+ 
+ noSelfReview([], _, _).
+ noSelfReview([W1|L1], [W2|L2], Id) :-
+    paperId(Id, R1, R2, _),
+    W1 #\= R1,
+    W1 #\= R2,
+    W2 #\= R1,
+    W2 #\= R2,
+    Id1 is Id + 1,
+    noSelfReview(L1, L2, Id1).
+ 
+ paperId(-1, _, _, _) :- false. % prevent warning
+ 
+ expertyReview([], _, _).
+ expertyReview([W1|L1], [W2|L2], Id) :-
+    paperId(Id, _, _, T),
+    findall(R, (reviewerDataId(R, T, _); reviewerDataId(R, _, T)), RL),
+    getDomainUnion(RL, RD),
+    W1 in RD,
+    W2 in RD,
+    Id1 is Id + 1,
+    expertyReview(L1, L2, Id1).
+ 
+ reviewerDataId(_, _, _) :- false. % prevent warning
+ 
+ assignDomain4(_, _, []).
+ assignDomain4(W1, W2, [T|L]) :-
+    W1 in T,
+    W2 in T,
+    assignDomain4(W1, W2, L).
+ 
+ paperHasTwoReviewers([], _).
+ paperHasTwoReviewers([W1|L1], [W2|L2]) :-
+    W1 #\= W2,
+    paperHasTwoReviewers(L1, L2).
+ 
+ % todo: over here
+ considerMaxLoad([], _).
+ considerMaxLoad([R|L], LoadMax) :-
+    count(R, L, C),
+    C #< LoadMax,
+    considerMaxLoad(L, LoadMax).
+ 
+ count(_, [], 0) :- !.
+ count(X, [X|L], N) :-
+    !,
+    count(X, L, N1),
+    N is N1 + 1.
+ count(X, [_|L], N) :-
+    count(X, L, N).
+ 
+ assignRealNames([], _).
+ assignRealNames([W|WL], [I|IL]) :-
+    reviewerId(I, R),
+    W = R,
+    assignRealNames(WL, IL).
+
+
+
+
+
+paper(1,lily,xxx,ai).
+paper(2,peter,john,database).
+paper(3,ann,xxx,theory).
+paper(4,ken,lily,network).
+paper(5,kris,xxx,games).
+
+reviewer(lily,theory,network).
+reviewer(john,ai,theory).
+reviewer(peter,database,network).
+reviewer(ann,theory,network).
+reviewer(kris,theory,games).
+reviewer(ken,database,games).
+reviewer(bill,database,ai).
+reviewer(jim,theory,games).
+
+workLoadAtMost(2).
