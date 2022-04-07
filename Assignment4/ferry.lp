@@ -142,6 +142,6 @@ goal :- time(T), goal(T).
 :- at(ferry,Loc,T),at(ferry,Loc1,T),Loc!=Loc1.
 :- board(Car,Loc,T), board(Car2,Loc2,T), Car!=Car2.
 
-
+% Computer specs: 8gb ram i5 8350u @1.7ghz
 
 

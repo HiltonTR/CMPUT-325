@@ -1,3 +1,6 @@
+% Hilton Truong 1615505
+% CMPUT 325 Assignment 4
+
 % -------------------------------------------------------------------------------------------------------------------------------------------
 
 % Question 1 (2 marks)
@@ -27,35 +30,6 @@
 % false
 
 % In prolog, there is a way to truncate a real number up to a fixed number of decimal places, which is something you don't need to worry about.
-
-
-% (b)  Define a predicate:
-
-%         query2(+Semester, -L).
-
-% Given a semester, find all students whose final exam shows an improvement over the midterm, in the sense that the percentage obtained from the final is (strictly) better than that of the midterm.
-
-% Test case:
-% ?- query2(fall_2021, X).
-% X = [aperf, ...] 
-
-% Here, we just list one name, there should be more. 
-
-
-% (c) Define a predicate:
-
-%           query3(+Semester,+Name,+Type,+NewMark)
-
-% Updates the record of Name for Semester where Type gets NewMark. If the record is not in the database, print the message "record not found".
-
-% Test cases:
-% ?- query3(fall_2021, kim, final, 87).
-% true
-
-% ?- query3(fall_2014, jim, as1, 53).
-% record not found
-% true
-
 
 % ----------------------------------------------------------------------------------------------------------------------
 
@@ -102,7 +76,17 @@ query1(Semester, Name, Total) :-
     Midterm / MaxMidterm * WeightMidterm + 
     Final / MaxFinal * WeightFinal.
 
+% (b)  Define a predicate:
 
+%         query2(+Semester, -L).
+
+% Given a semester, find all students whose final exam shows an improvement over the midterm, in the sense that the percentage obtained from the final is (strictly) better than that of the midterm.
+
+% Test case:
+% ?- query2(fall_2021, X).
+% X = [aperf, ...] 
+
+% Here, we just list one name, there should be more. 
 
 query2(Semester, L) :-
 	findall(Name, getResults(Semester, Name), L).
@@ -113,33 +97,53 @@ getResults(Semester, Name) :-
 	c325(Semester, Name, _, _, _, _, Midterm, Final),
 	Midterm / MidtermMark < Final / FinalMark.
 
+% (c) Define a predicate:
 
+%           query3(+Semester,+Name,+Type,+NewMark)
 
+% Updates the record of Name for Semester where Type gets NewMark. If the record is not in the database, print the message "record not found".
+
+% Test cases:
+% ?- query3(fall_2021, kim, final, 87).
+% true
+
+% ?- query3(fall_2014, jim, as1, 53).
+% record not found
+% true
+
+% retract found from: http://www.cse.unsw.edu.au/~billw/dictionaries/prolog/retract.html
+
+% For assignment1
 query3(Semester, Name, as1, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
     retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
     assert(c325(Semester, Name, NewMark, As2, As3, As4, Midterm, Final)).
 
+% For assignment2
 query3(Semester, Name, as2, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
     retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
     assert(c325(Semester, Name, As1, NewMark, As3, As4, Midterm, Final)).
 
+% For assignment3
 query3(Semester, Name, as3, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
     retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
     assert(c325(Semester, Name, As1, As2, NewMark, As4, Midterm, Final)).
 
+% For assignment4
 query3(Semester, Name, as4, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
     retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
     assert(c325(Semester, Name, As1, As2, As3, NewMark, Midterm, Final)).
 
+% For midterm
 query3(Semester, Name, midterm, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
     retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
     assert(c325(Semester, Name, As1, As2, As3, As4, NewMark, Final)).
 
+% For final
 query3(Semester, Name, final, NewMark) :-
     c325(Semester, Name, As1, As2, As3, As4, Midterm, Final),
     retract(c325(Semester, Name, As1, As2, As3, As4, Midterm, Final)),
@@ -147,7 +151,6 @@ query3(Semester, Name, final, NewMark) :-
 
 query3(_,_,_,_):-
     write('Record not found').
-
 
 
 
@@ -204,9 +207,6 @@ query3(_,_,_,_):-
 % domain values.  By typing ";" at the end of each answer, your program should generate all 
 % solutions and terminate. 
 
-% https://stackoverflow.com/questions/11882760/cryptarithmetic-puzzle-prolog 
-% https://ai.ia.agh.edu.pl/pl:prolog:pllib:cryptoarithmetic_puzzle_2
-
 encrypt(W1,W2,W3) :- 
     length(W1,N), % if you need to know the lengths of words
     length(W3,N1),   
@@ -222,29 +222,35 @@ encrypt(W1,W2,W3) :-
     LeadLetter3 #\= 0,
     all_diff(Letters),
 
-    get_sum(W1, Sum1),
-    get_sum(W2, Sum2),
-    Sum4 #= Sum3,
-    Sum3 #= Sum1 + Sum2,
-    get_sum(W3, Sum4),
-
+    %find the values of the length of the list
+    % and make sure the results add up
+    sum(W1, Num1),
+    sum(W2, Num2),
+    Num4 #= Num3,
+    Num3 #= Num1 + Num2,
+    sum(W3, Num4),
+    % print it out
     Letters ins 0..9,
     label(Letters).
  
- get_sum([], 0).
- get_sum([A|L], Sum) :-
-    length([A|L], Len),
-    Exp is Len - 1,
-    power(10, Exp, P),
-    Sum1 #= A*P,
-    get_sum(L, Sum2),
-    Sum #= Sum1 + Sum2.
+% this function gets the length of the list then 
+% finds the number that can be assigned to the letter
+sum([], 0).
+sum([A|R], Num) :-
+    length([A|R], L),
+    X is L - 1,
+    power(10, X, Ans),
+    Num1 #= A*Ans,
+    sum(R, Num2),
+    Num #= Num1 + Num2.
  
+ % power function inspired from here 
+ % https://stackoverflow.com/a/1448815
  power(_, 0, 1) :- !.
- power(Base, Exp, Result) :-
-    Exp1 is Exp - 1,
-    power(Base, Exp1, Result1),
-    Result is Result1 * Base.
+ power(X, Y, Ans) :-
+    Y1 is Y - 1,
+    power(X, Y1, Ans1),
+    Ans is Ans1 * X.
  
  %taken from eclass
  all_diff([_]).
