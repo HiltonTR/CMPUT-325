@@ -217,22 +217,19 @@ encrypt(W1,W2,W3) :-
     [LeadLetter2|_] = W2,
     [LeadLetter3|_] = W3,
     !, % never need to redo the above
-
-    all_diff(Letters),
-    sum_constraint(LeadLetter3, N, N1),
-    Sum4 #= Sum3,
     LeadLetter1 #\= 0,
     LeadLetter2 #\= 0,
     LeadLetter3 #\= 0,
+    all_diff(Letters),
+
     get_sum(W1, Sum1),
     get_sum(W2, Sum2),
+    Sum4 #= Sum3,
     Sum3 #= Sum1 + Sum2,
     get_sum(W3, Sum4),
+
     Letters ins 0..9,
     label(Letters).
- 
- sum_constraint(_, A, A) :- !.
- sum_constraint(Letter, _, _) :- Letter #= 1.
  
  get_sum([], 0).
  get_sum([A|L], Sum) :-
@@ -249,6 +246,7 @@ encrypt(W1,W2,W3) :-
     power(Base, Exp1, Result1),
     Result is Result1 * Base.
  
+ %taken from eclass
  all_diff([_]).
  all_diff([A|L]) :-
     diff(A, L),
